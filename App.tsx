@@ -1,118 +1,75 @@
 /**
- * Sample React Native App
- * https://github.com/facebook/react-native
+ * Vinícius da Silva Vieira
+ * https://github.com/viniciusdasilvavieira
  *
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, FlatList } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+// Components
+import styled           from 'styled-components/native';
+import Header           from './components/Header';
+import Description      from './components/Description';
+import TaskInputForm    from './components/TaskInputForm';
+import TaskItem         from './components/TaskItem';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+const Container = styled(SafeAreaView)`
+  flex: 1;
+  background-color: #f0f0f5;
+`;
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
+const ContentContainer = styled.View`
+  flex: 1;
+  padding: 40px;
+`;
+
+interface Task {
+  id: string;
+  text: string;
+  completed: boolean;
 }
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [newTask, setNewTask] = useState<string>('');
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  // Task function
+  const addTask = () => {
+    if (newTask.trim() === '') return;
+    setTasks([...tasks, { id: Date.now().toString(), text: newTask, completed: false }]);
+    setNewTask('');
   };
 
+  // Toggle finished task
+  const toggleTask = (id: string) => {
+    setTasks(tasks.map(task => task.id === id ? { ...task, completed: !task.completed } : task));
+  };
+
+  // Remove task function
+  const removeTask = (id: string) => {
+    setTasks(tasks.filter(task => task.id !== id));
+  };
+
+  const renderItem = ({ item }: { item: Task }) => (
+    <TaskItem item={item} toggleTask={toggleTask} removeTask={removeTask} />
+  );
+
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <Container>
+      <Header />
+      <ContentContainer>
+        <Description text="Tap an item to mark it as complete" />
+        <TaskInputForm newTask={newTask} setNewTask={setNewTask} addTask={addTask} />
+        <FlatList
+          data={tasks}
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+        />
+      </ContentContainer>
+    </Container>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;
